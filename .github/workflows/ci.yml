@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  sdk-ts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+      - run: cd packages/sdk-ts && bun install && bun run test && bun run build
+
+  mcp-server:
+    runs-on: ubuntu-latest
+    needs: sdk-ts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+      # Build sdk-ts FIRST so the file: dep resolves cleanly
+      - run: cd packages/sdk-ts && bun install && bun run build
+      - run: cd packages/mcp-server && bun install && bun run test && bun run build
+
+  sdk-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: cd packages/sdk-python && pip install -e ".[dev]" && pytest

@@ -1,0 +1,55 @@
+{
+  "name": "benchlytix-mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server for BenchLytix \u2014 expose agent trust scores, leaderboards, and verification as tools in Claude Code, Cursor, VS Code, and any MCP-compatible client.",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "benchlytix",
+    "ai-agents",
+    "claude",
+    "cursor"
+  ],
+  "license": "MIT",
+  "author": "BenchLytix <support@benchlytix.com>",
+  "homepage": "https://benchlytix.com/for/agents",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ckpark123/benchlytix-sdks.git",
+    "directory": "packages/mcp-server"
+  },
+  "bugs": {
+    "url": "https://github.com/ckpark123/benchlytix-sdks/issues"
+  },
+  "type": "module",
+  "bin": {
+    "benchlytix-mcp-server": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --target node18 --clean",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.0.4",
+    "@benchlytixai/sdk": "0.1.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  }
+}
