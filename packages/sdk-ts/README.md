@@ -38,13 +38,30 @@ const { data: status } = await bl.verifyStatus('00000000-0000-4000-8000-00000000
 if (status.verified) {
   console.log(`verified, score ${status.score}`)
 }
+
+// 4. Open-source replacements for a paid tool (0.2.0). Every candidate has an
+//    evidence_label: tested | coverage_checked | listed_untested. No score on
+//    untested rows.
+const { data: found } = await bl.replacements({ paidTool: 'Zapier', setup: { hosting: 'docker' } })
+for (const c of found.candidates) {
+  console.log(`${c.name}: ${c.evidence_label}, ${c.facts.licence_class}`)
+}
+
+// 5. Tested scorecard: self-hosted n8n vs Zapier Free (0.2.0). status is
+//    'no_published_run' until a reviewed run is published; show disclosures.
+const { data: card } = await bl.scorecard('workflow-automation')
+for (const side of [card.sides.n8n, card.sides.zapier]) {
+  if (side) console.log(`${side.label}: ${side.verdict_words}, ${side.counts.pass}/${side.counts.total} recipes passed`)
+}
 ```
 
 ## API key
 
-Get a key at [benchlytix.com/dashboard/api-keys](https://benchlytix.com/dashboard/api-keys) (ships in Session 2b). Keys look like `blx_live_...` (production) or `blx_test_...` (sandbox, when available).
+Get a key at [benchlytix.com/dashboard/api-keys](https://benchlytix.com/dashboard/api-keys). Keys look like `blx_live_...` (production) or `blx_test_...` (sandbox, when available).
 
 Set `BENCHLYTIX_API_KEY` in your environment, or pass `{ apiKey }` explicitly.
+
+**Free**: API keys are free from the [dashboard](https://benchlytix.com/dashboard/api-keys) and need no subscription. Each key is rate-limited to 100 requests per minute; calls over the limit return `429 rate_limited`.
 
 ## Error handling
 

@@ -40,12 +40,16 @@ Add to `.cursor/mcp.json` (or equivalent):
 | `get_categories` | List all task categories. *(arrives in Session 2b)* |
 | `compare_agents` | Side-by-side comparison of 2–5 agents. |
 | `get_methodology` | Scoring methodology document. *(arrives in Session 2b)* |
+| `find_replacements` | Open-source replacements for a paid tool or a goal, each labelled `tested`, `coverage_checked` or `listed_untested` (0.2.0). |
+| `get_scorecard` | The latest published tested scorecard; `workflow-automation` (default) = self-hosted n8n vs Zapier Free, per-side verdict, recipe outcomes, run links and disclosures (0.2.0). |
 
 ## API key
 
 Get a key at [benchlytix.com/dashboard/api-keys](https://benchlytix.com/dashboard/api-keys). Keys look like `blx_live_...`.
 
 The MCP server reads the key from `BENCHLYTIX_API_KEY` only — never from tool arguments (would leak into `ps` output).
+
+**Free**: API keys are free from the [dashboard](https://benchlytix.com/dashboard/api-keys) and need no subscription. Each key is rate-limited to 100 requests per minute; tool calls over the limit return a `rate_limited` error.
 
 ## Example
 

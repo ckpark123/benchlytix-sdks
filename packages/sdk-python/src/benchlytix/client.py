@@ -1,6 +1,6 @@
 """BenchLytix Python client — sync + async.
 
-Mirrors the @benchlytix/sdk TypeScript surface method-for-method.
+Mirrors the @benchlytixai/sdk TypeScript surface method-for-method.
 
 Both entry points share the same request-level logic via `_parse_response`.
 The sync client uses `httpx.Client`; the async client uses `httpx.AsyncClient`.
@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import os
 from types import TracebackType
-from typing import Any, Optional, Type
+from typing import Any, List, Optional, Tuple, Type
 from urllib.parse import quote
 
 import httpx
@@ -27,11 +27,40 @@ from .errors import BenchlytixError, error_from_response
 from .types import (
     AgentResponse,
     LeaderboardResponse,
+    ReplacementsResponse,
+    ScorecardResponse,
     VerifiedStatusResponse,
 )
 
+
+def _replacement_params(
+    goal: Optional[str],
+    paid_tool: Optional[str],
+    hosting: Optional[str],
+    osi_only: Optional[bool],
+    include_proprietary: Optional[bool],
+    must_keep_integrations: Optional[List[str]],
+) -> List[Tuple[str, str]]:
+    if not goal and not paid_tool:
+        raise ValueError("replacements(): goal or paid_tool is required")
+    params: List[Tuple[str, str]] = []
+    if goal:
+        params.append(("goal", goal))
+    if paid_tool:
+        params.append(("paid_tool", paid_tool))
+    if hosting:
+        params.append(("hosting", hosting))
+    if osi_only is not None:
+        params.append(("osi_only", "true" if osi_only else "false"))
+    if include_proprietary is not None:
+        params.append(("include_proprietary", "true" if include_proprietary else "false"))
+    # One parameter per app, so an app name may contain a comma.
+    for app in must_keep_integrations or []:
+        params.append(("must_keep_integrations", app))
+    return params
+
 _DEFAULT_BASE_URL = "https://api.benchlytix.com/v1"
-_USER_AGENT = "benchlytix-python/0.1.0"
+_USER_AGENT = "benchlytix-python/0.2.0"
 
 
 def _resolve_api_key(explicit: Optional[str]) -> str:
@@ -160,6 +189,34 @@ class BenchLytix:
         )
         return VerifiedStatusResponse.model_validate(raw)
 
+    def replacements(
+        self,
+        *,
+        goal: Optional[str] = None,
+        paid_tool: Optional[str] = None,
+        hosting: Optional[str] = None,
+        osi_only: Optional[bool] = None,
+        include_proprietary: Optional[bool] = None,
+        must_keep_integrations: Optional[List[str]] = None,
+    ) -> ReplacementsResponse:
+        """Self-hostable replacements for a paid tool or a goal (GET /v1/replacements).
+
+        Every candidate has ``evidence_label`` (tested | coverage_checked |
+        listed_untested); there is no score on untested rows.
+        """
+        params = _replacement_params(goal, paid_tool, hosting, osi_only, include_proprietary, must_keep_integrations)
+        raw = _parse_response(self._client.get("/replacements", params=params))
+        return ReplacementsResponse.model_validate(raw)
+
+    def scorecard(self, suite: str = "workflow-automation") -> ScorecardResponse:
+        """The latest published tested scorecard (GET /v1/scorecards/{suite}).
+
+        ``workflow-automation`` (the default) is self-hosted n8n vs Zapier Free.
+        ``status`` is ``no_published_run`` until a reviewed run is published.
+        """
+        raw = _parse_response(self._client.get(f"/scorecards/{quote(suite, safe='')}"))
+        return ScorecardResponse.model_validate(raw)
+
 
 class AsyncBenchLytix:
     """Asynchronous client. Use inside an event loop."""
@@ -235,6 +292,26 @@ class AsyncBenchLytix:
             )
         )
         return VerifiedStatusResponse.model_validate(raw)
+
+    async def replacements(
+        self,
+        *,
+        goal: Optional[str] = None,
+        paid_tool: Optional[str] = None,
+        hosting: Optional[str] = None,
+        osi_only: Optional[bool] = None,
+        include_proprietary: Optional[bool] = None,
+        must_keep_integrations: Optional[List[str]] = None,
+    ) -> ReplacementsResponse:
+        """Async variant of ``BenchLytix.replacements``."""
+        params = _replacement_params(goal, paid_tool, hosting, osi_only, include_proprietary, must_keep_integrations)
+        raw = _parse_response(await self._client.get("/replacements", params=params))
+        return ReplacementsResponse.model_validate(raw)
+
+    async def scorecard(self, suite: str = "workflow-automation") -> ScorecardResponse:
+        """Async variant of ``BenchLytix.scorecard``."""
+        raw = _parse_response(await self._client.get(f"/scorecards/{quote(suite, safe='')}"))
+        return ScorecardResponse.model_validate(raw)
 
 
 # Re-export at module level so `from benchlytix.client import BenchlytixError`

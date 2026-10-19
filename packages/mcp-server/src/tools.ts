@@ -1,5 +1,6 @@
 /**
- * MCP tool handlers — 6 tools per `Specs/developer-experience.md` §3.
+ * MCP tool handlers — the 6 tools of `Specs/developer-experience.md` §3 plus
+ * `find_replacements` (PR-S3) and `get_scorecard` (PR-S2).
  *
  * Each handler is a pure function that takes a BenchLytix SDK client + args
  * and returns an MCP `CallToolResult`-compatible object. The `src/index.ts`
@@ -13,6 +14,12 @@
  *   - get_agent_score  → bl.agent(...)                   (score is nested)
  *   - verify_agent     → bl.agent(slug) OR bl.verifyStatus(id) by arg shape
  *
+ * PR-S3 (0.2.0):
+ *   - find_replacements → bl.replacements(...) (GET /v1/replacements)
+ *
+ * PR-S2 (0.2.0):
+ *   - get_scorecard → bl.scorecard(suite) (GET /v1/scorecards/{suite})
+ *
  * S2b route coverage (stubs that return `not_available` until S2b lands):
  *   - get_categories
  *   - compare_agents
@@ -21,6 +28,34 @@
 
 import type { BenchLytix } from '@benchlytixai/sdk'
 import { BenchlytixError } from '@benchlytixai/sdk'
+
+/**
+ * 2026-09-27 honest-scores: every score the MCP server hands an agent
+ * carries its evidence basis + the human label ("Estimated from
+ * documentation") so a model consuming the tool output cannot present a
+ * desk estimate as a measurement. Read defensively (the published SDK dist
+ * may lag the source types); the API always returns both fields.
+ */
+const DOCUMENTATION_ONLY_LABEL = 'Estimated from documentation'
+const EVIDENCE_LABELS: Record<string, string> = {
+  documentation_only: DOCUMENTATION_ONLY_LABEL,
+  probe_measured: 'Measured by probe',
+  runtime_measured: 'Measured from runtime telemetry',
+}
+function evidenceFields(score: unknown): {
+  evidence_basis: string | null
+  evidence_label: string | null
+} {
+  const s = (score ?? {}) as { evidence_basis?: unknown; evidence_label?: unknown }
+  const basis = typeof s.evidence_basis === 'string' ? s.evidence_basis : null
+  const label =
+    typeof s.evidence_label === 'string'
+      ? s.evidence_label
+      : basis
+        ? (EVIDENCE_LABELS[basis] ?? null)
+        : null
+  return { evidence_basis: basis, evidence_label: label }
+}
 
 export interface ToolContent {
   type: 'text'
@@ -128,6 +163,7 @@ export async function getAgentScore(
       cost_efficiency_score: res.data.latest_score?.cost_efficiency_score ?? null,
       reliability_score: res.data.latest_score?.reliability_score ?? null,
       week: res.data.latest_score?.week ?? null,
+      ...evidenceFields(res.data.latest_score),
       badge_url: res.data.badge_url,
       verified_at: res.data.verified_at,
     })
@@ -178,6 +214,7 @@ export async function verifyAgent(
         verified_at: res.data.verified_at,
         badge_url: res.data.badge_url,
         slug: res.data.slug,
+        ...evidenceFields(res.data.latest_score),
       })
     } catch (err) {
       if (err instanceof BenchlytixError && err.code === 'not_found') {
@@ -262,10 +299,18 @@ export async function compareAgents(
             name: data.name,
             overall_score: data.latest_score?.overall_score ?? null,
             verified_at: data.verified_at,
+            ...evidenceFields(data.latest_score),
           }
         } catch (err) {
           if (err instanceof BenchlytixError && err.code === 'not_found') {
-            return { slug, name: null, overall_score: null, verified_at: null }
+            return {
+              slug,
+              name: null,
+              overall_score: null,
+              verified_at: null,
+              evidence_basis: null,
+              evidence_label: null,
+            }
           }
           throw err
         }
@@ -303,6 +348,130 @@ export async function getMethodology(
 }
 
 // ---------------------------------------------------------------------------
+// find_replacements — wraps bl.replacements(...) (PR-S3, investigation §5)
+// ---------------------------------------------------------------------------
+
+export const FIND_REPLACEMENTS_SCHEMA = {
+  name: 'find_replacements',
+  description:
+    'Find self-hostable replacements (each with its licence class) for a paid tool or a goal. Every candidate carries evidence_label: "tested" (a published BenchLytix test with a verdict and scorecard_url), "coverage_checked" (connector coverage computed from a crawled directory, nothing run) or "listed_untested" (public facts only). Show the label with each candidate; there is no score on untested rows. licence_class is derived from SPDX and reviewed LICENSE files (open_core, fair_code and source_available tools are not fully open source). Each candidate has description (whose words), maintenance (inactive = no push in 12 months), and where known a footprint (a rough hosting reference, not a measurement); paid_tool_pricing gives the paid tool\'s vendor list price with its source and date; hidden lists what was left out and why. Call this before recommending or adopting a self-hosted tool.',
+  inputSchema: {
+    type: 'object' as const,
+    properties: {
+      paid_tool: { type: 'string', description: 'The paid tool to replace, e.g. "Zapier", "Airtable".' },
+      goal: {
+        type: 'string',
+        enum: [
+          'automation',
+          'team-wiki',
+          'spreadsheet-database',
+          'forms-surveys',
+          'scheduling',
+          'team-chat',
+          'crm',
+          'product-analytics',
+          'observability',
+          'e-signature',
+          'customer-messaging',
+          'llm-tracing',
+          'secrets',
+          'project-tracking',
+          'file-sync',
+        ],
+        description: 'What the user is trying to get done (BenchLytix replacement taxonomy v1).',
+      },
+      setup: {
+        type: 'object',
+        properties: {
+          hosting: { type: 'string', enum: ['none', 'docker', 'k8s'] },
+          osi_only: { type: 'boolean' },
+          include_proprietary: { type: 'boolean', description: 'Also return proprietary-licensed self-hosted projects (hidden by default).' },
+          must_keep_integrations: { type: 'array', items: { type: 'string' }, maxItems: 20 },
+        },
+        additionalProperties: false,
+      },
+    },
+    additionalProperties: false,
+  },
+}
+
+export interface FindReplacementsArgs {
+  paid_tool?: string
+  goal?: string
+  setup?: {
+    hosting?: 'none' | 'docker' | 'k8s'
+    osi_only?: boolean
+    include_proprietary?: boolean
+    must_keep_integrations?: string[]
+  }
+}
+
+export async function findReplacements(bl: BenchLytix, args: FindReplacementsArgs): Promise<ToolResult> {
+  if (!args.paid_tool && !args.goal) return fail('Provide paid_tool or goal', 'validation_error')
+  try {
+    const res = await bl.replacements({
+      goal: args.goal,
+      paidTool: args.paid_tool,
+      setup: args.setup
+        ? {
+            hosting: args.setup.hosting,
+            osiOnly: args.setup.osi_only,
+            includeProprietary: args.setup.include_proprietary,
+            mustKeepIntegrations: args.setup.must_keep_integrations,
+          }
+        : undefined,
+    })
+    // The investigation §5 contract: the envelope's meta travels with the data.
+    return ok({ ...res.data, meta: res.meta })
+  } catch (err) {
+    return wrapError(err)
+  }
+}
+
+// ---------------------------------------------------------------------------
+// get_scorecard — wraps bl.scorecard(suite) (PR-S2, GET /v1/scorecards/{suite})
+// ---------------------------------------------------------------------------
+
+export const SCORECARD_SUITES = ['workflow-automation'] as const
+export type ScorecardSuiteArg = (typeof SCORECARD_SUITES)[number]
+
+export const GET_SCORECARD_SCHEMA = {
+  name: 'get_scorecard',
+  description:
+    'Get the latest published BenchLytix tested scorecard. "workflow-automation" (the default) answers "can self-hosted n8n replace Zapier?": twelve two-step automations run three times each on Zapier Free and on self-hosted n8n. Each side has a verdict with verdict_words (e.g. "Can replace", "Partly"), recipe counts (pass / fail / not_observed; a rep whose result could not be read back is not_observed, never a failure), per-recipe outcomes with per-rep latency, and run_url to the full published run. status is "no_published_run" until a person at BenchLytix has reviewed and published a run. There is no score; quote verdict_words and the disclosures (what was not tested, how each side was judged) with any answer, and link run_url.',
+  inputSchema: {
+    type: 'object' as const,
+    properties: {
+      suite: {
+        type: 'string',
+        enum: [...SCORECARD_SUITES],
+        default: 'workflow-automation',
+        description: 'Which tested scorecard. Only "workflow-automation" (n8n vs Zapier) exists today.',
+      },
+    },
+    additionalProperties: false,
+  },
+}
+
+export interface GetScorecardArgs {
+  suite?: string
+}
+
+export async function getScorecard(bl: BenchLytix, args: GetScorecardArgs): Promise<ToolResult> {
+  const suite = args.suite ?? 'workflow-automation'
+  if (!(SCORECARD_SUITES as readonly string[]).includes(suite)) {
+    return fail(`Unknown suite "${suite}". Available: ${SCORECARD_SUITES.join(', ')}`, 'validation_error')
+  }
+  try {
+    const res = await bl.scorecard(suite as ScorecardSuiteArg)
+    // Same as find_replacements: the envelope's meta travels with the data.
+    return ok({ ...res.data, meta: res.meta })
+  } catch (err) {
+    return wrapError(err)
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Registry — used by index.ts to wire MCP transport.
 // ---------------------------------------------------------------------------
 
@@ -313,6 +482,8 @@ export const TOOL_SCHEMAS = [
   GET_CATEGORIES_SCHEMA,
   COMPARE_AGENTS_SCHEMA,
   GET_METHODOLOGY_SCHEMA,
+  FIND_REPLACEMENTS_SCHEMA,
+  GET_SCORECARD_SCHEMA,
 ] as const
 
 export type ToolName = (typeof TOOL_SCHEMAS)[number]['name']
@@ -335,6 +506,10 @@ export function dispatch(
       return compareAgents(bl, args as { slugs: string[] })
     case 'get_methodology':
       return getMethodology(bl, {} as Record<string, never>)
+    case 'find_replacements':
+      return findReplacements(bl, args as FindReplacementsArgs)
+    case 'get_scorecard':
+      return getScorecard(bl, args as GetScorecardArgs)
     default:
       return Promise.resolve(fail(`Unknown tool: ${name}`, 'not_found'))
   }

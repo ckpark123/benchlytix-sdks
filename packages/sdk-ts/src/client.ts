@@ -4,10 +4,12 @@
  * Thin wrapper over the Machine API v1 (S2a). Zero runtime deps —
  * relies on global `fetch` (Node ≥18, all modern browsers/runtimes).
  *
- * Surface (3 methods matching the 3 live v1 routes from S2a):
+ * Surface:
  *   - leaderboard({ category?, limit? })          → GET /v1/agents
  *   - agent(slug)                                  → GET /v1/agents/[slug]
  *   - verifyStatus(agentId)                        → GET /v1/verified-status
+ *   - replacements({ goal? | paidTool?, setup? })  → GET /v1/replacements (0.2.0)
+ *   - scorecard(suite = 'workflow-automation')     → GET /v1/scorecards/{suite} (0.2.0)
  *
  * More methods (score, compare, categories, methodology) arrive in S2b
  * when those routes land. This SDK will add them without a major bump.
@@ -21,6 +23,10 @@ import type {
   AgentProfile,
   LeaderboardParams,
   RankedAgentRow,
+  ReplacementsParams,
+  ReplacementsResult,
+  ScorecardResult,
+  ScorecardSuite,
   SuccessEnvelope,
   VerifiedStatus,
 } from './types'
@@ -117,6 +123,36 @@ export class BenchLytix {
     return this.request<VerifiedStatus>(`/verified-status?${qs}`)
   }
 
+  /**
+   * GET /v1/replacements — open-source replacement candidates for a goal or a
+   * paid tool, each with its evidence label (tested | coverage_checked |
+   * listed_untested). goal or paidTool is required.
+   */
+  async replacements(params: ReplacementsParams): Promise<SuccessEnvelope<ReplacementsResult>> {
+    if (!params || (!params.goal && !params.paidTool)) {
+      throw new Error('[benchlytix] replacements(): goal or paidTool is required')
+    }
+    const search = new URLSearchParams()
+    if (params.goal) search.set('goal', params.goal)
+    if (params.paidTool) search.set('paid_tool', params.paidTool)
+    const s = params.setup
+    if (s?.hosting) search.set('hosting', s.hosting)
+    if (s?.osiOnly !== undefined) search.set('osi_only', String(s.osiOnly))
+    if (s?.includeProprietary !== undefined) search.set('include_proprietary', String(s.includeProprietary))
+    // One parameter per app, so an app name may contain a comma.
+    for (const app of s?.mustKeepIntegrations ?? []) search.append('must_keep_integrations', app)
+    return this.request<ReplacementsResult>(`/replacements?${search.toString()}`)
+  }
+
+  /**
+   * GET /v1/scorecards/{suite} — the latest published tested scorecard
+   * (today: n8n self-hosted vs Zapier Free, `workflow-automation`). status is
+   * 'no_published_run' until a reviewed run is published.
+   */
+  async scorecard(suite: ScorecardSuite = 'workflow-automation'): Promise<SuccessEnvelope<ScorecardResult>> {
+    return this.request<ScorecardResult>(`/scorecards/${encodeURIComponent(suite)}`)
+  }
+
   private async request<T>(path: string): Promise<SuccessEnvelope<T>> {
     const url = `${this.baseUrl}${path}`
     const controller = new AbortController()
@@ -128,7 +164,7 @@ export class BenchLytix {
         headers: {
           Authorization: `Bearer ${this.apiKey}`,
           Accept: 'application/json',
-          'User-Agent': '@benchlytixai/sdk-ts/0.1.0',
+          'User-Agent': '@benchlytixai/sdk-ts/0.2.0',
         },
         signal: controller.signal,
       })

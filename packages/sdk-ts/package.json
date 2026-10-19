@@ -1,7 +1,7 @@
 {
   "name": "@benchlytixai/sdk",
-  "version": "0.1.0",
-  "description": "Official TypeScript SDK for the BenchLytix Machine API \u2014 agent trust scores, leaderboards, and verification.",
+  "version": "0.2.0",
+  "description": "Official TypeScript SDK for the BenchLytix Machine API — agent trust scores, leaderboards, and verification.",
   "keywords": [
     "benchlytix",
     "ai-agents",
@@ -50,9 +50,9 @@
     "access": "public"
   },
   "devDependencies": {
+    "@types/node": "^20.19.43",
     "tsup": "^8.0.0",
     "typescript": "^5.5.0",
-    "vitest": "^2.0.0",
-    "@types/node": "^22.0.0"
+    "vitest": "^2.0.0"
   }
 }

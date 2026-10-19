@@ -54,8 +54,8 @@ function makeClient(fetchImpl: typeof fetch): BenchLytix {
 }
 
 describe('TOOL_SCHEMAS', () => {
-  it('exposes exactly 6 tools per developer-experience.md §3', () => {
-    expect(TOOL_SCHEMAS).toHaveLength(6)
+  it('exposes the 6 tools of developer-experience.md §3 plus find_replacements (PR-S3) and get_scorecard (PR-S2)', () => {
+    expect(TOOL_SCHEMAS).toHaveLength(8)
     const names = TOOL_SCHEMAS.map((t) => t.name)
     expect(names).toEqual([
       'get_leaderboard',
@@ -64,6 +64,8 @@ describe('TOOL_SCHEMAS', () => {
       'get_categories',
       'compare_agents',
       'get_methodology',
+      'find_replacements',
+      'get_scorecard',
     ])
   })
 
@@ -280,5 +282,58 @@ describe('dispatch', () => {
     expect(result.isError).toBe(true)
     const parsed = JSON.parse(result.content[0]!.text) as { error: { code: string } }
     expect(parsed.error.code).toBe('not_found')
+  })
+})
+
+// 2026-09-27 honest-scores — tool output carries evidence_basis + evidence_label.
+describe('evidence basis passthrough', () => {
+  const docProfile = {
+    id: 'a1',
+    slug: 'doc-bot',
+    name: 'Doc Bot',
+    description: null,
+    task_category: 'legal-summarization',
+    homepage_url: null,
+    verified_at: '2026-04-01T00:00:00.000Z',
+    latest_score: {
+      week: '2026-W38',
+      overall_score: 70,
+      task_success_rate: 50,
+      latency_percentile: 50,
+      cost_efficiency_score: 72,
+      reliability_score: 80,
+      evidence_basis: 'documentation_only',
+      evidence_label: 'Estimated from documentation',
+    },
+    badge_url: 'https://benchlytix.com/api/v1/badge/doc-bot.svg',
+  } as unknown as AgentProfile
+
+  it('get_agent_score includes evidence_basis + evidence_label', async () => {
+    const bl = makeClient(vi.fn<typeof fetch>().mockResolvedValue(makeResponse({ data: docProfile, meta: META })))
+    const result = await getAgentScore(bl, { slug: 'doc-bot' })
+    const parsed = JSON.parse(result.content[0]!.text) as Record<string, unknown>
+    expect(parsed.evidence_basis).toBe('documentation_only')
+    expect(parsed.evidence_label).toBe('Estimated from documentation')
+  })
+
+  it('derives the label from the basis when the API omits evidence_label', async () => {
+    const p = { ...docProfile, latest_score: { ...(docProfile.latest_score as object), evidence_label: undefined } }
+    const bl = makeClient(vi.fn<typeof fetch>().mockResolvedValue(makeResponse({ data: p, meta: META })))
+    const result = await getAgentScore(bl, { slug: 'doc-bot' })
+    const parsed = JSON.parse(result.content[0]!.text) as Record<string, unknown>
+    expect(parsed.evidence_label).toBe('Estimated from documentation')
+  })
+
+  it('compare_agents rows include evidence fields (null for not_found)', async () => {
+    const fetchMock = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(makeResponse({ data: docProfile, meta: META }))
+      .mockResolvedValueOnce(makeResponse({ error: { code: 'not_found', message: 'nope' } }, 404))
+    const bl = makeClient(fetchMock)
+    const result = await compareAgents(bl, { slugs: ['doc-bot', 'ghost'] })
+    const parsed = JSON.parse(result.content[0]!.text) as { agents: Array<Record<string, unknown>> }
+    expect(parsed.agents[0]!.evidence_basis).toBe('documentation_only')
+    expect(parsed.agents[0]!.evidence_label).toBe('Estimated from documentation')
+    expect(parsed.agents[1]!.evidence_basis).toBeNull()
+    expect(parsed.agents[1]!.evidence_label).toBeNull()
   })
 })

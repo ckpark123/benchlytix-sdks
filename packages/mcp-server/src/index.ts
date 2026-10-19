@@ -26,7 +26,7 @@ import { BenchLytix } from '@benchlytixai/sdk'
 import { TOOL_SCHEMAS, dispatch } from './tools'
 
 const SERVER_NAME = 'benchlytix-mcp-server'
-const SERVER_VERSION = '0.1.0'
+const SERVER_VERSION = '0.2.0'
 
 async function main(): Promise<void> {
   const apiKey = process.env.BENCHLYTIX_API_KEY

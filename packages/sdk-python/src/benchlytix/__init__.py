@@ -21,12 +21,16 @@ from .types import (
     LatestScore,
     RankedAgentRow,
     RateLimitMeta,
+    ReplacementCandidate,
+    ReplacementsResult,
+    ScorecardResult,
+    ScorecardSide,
     SuccessEnvelope,
     SuccessMeta,
     VerifiedStatus,
 )
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "BenchLytix",
@@ -39,6 +43,10 @@ __all__ = [
     "LatestScore",
     "RankedAgentRow",
     "RateLimitMeta",
+    "ReplacementCandidate",
+    "ReplacementsResult",
+    "ScorecardResult",
+    "ScorecardSide",
     "SuccessEnvelope",
     "SuccessMeta",
     "VerifiedStatus",

@@ -54,6 +54,8 @@ Get a key at [benchlytix.com/dashboard/api-keys](https://benchlytix.com/dashboar
 
 Set `BENCHLYTIX_API_KEY` in your environment, or pass `api_key=...` explicitly.
 
+**Free**: API keys are free from the [dashboard](https://benchlytix.com/dashboard/api-keys) and need no subscription. Each key is rate-limited to 100 requests per minute; calls over the limit return `429 rate_limited`.
+
 ## Error handling
 
 All errors extend `BenchlytixError` and carry `code`, `status`, `request_id`, and `message`.

@@ -9,6 +9,10 @@
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
+  // Inline (empty) PostCSS config: without it Vite searches upward and loads the
+  // repo root's postcss.config.js, which needs tailwindcss, a dependency this
+  // package does not install (CI runs `npm ci` per package).
+  css: { postcss: { plugins: [] } },
   test: {
     environment: 'node',
     include: ['__tests__/**/*.test.ts'],

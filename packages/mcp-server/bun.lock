@@ -5,7 +5,7 @@
     "": {
       "name": "benchlytix-mcp-server",
       "dependencies": {
-        "@benchlytixai/sdk": "0.1.0",
+        "@benchlytixai/sdk": "file:../sdk-ts",
         "@modelcontextprotocol/sdk": "1.0.4",
       },
       "devDependencies": {
@@ -16,7 +16,7 @@
     },
   },
   "packages": {
-    "@benchlytixai/sdk": ["@benchlytixai/sdk@0.1.0", "", {}, "sha512-Dt3QsyIs8ODcHjq6ZAEcpUM5uB1ZLM+4zgeoCX1+6X7iTqegyzICZA1cjlHBfGbizdUOf/in5IdJyX5YLFUsZw=="],
+    "@benchlytixai/sdk": ["@benchlytixai/sdk@file:../sdk-ts", { "devDependencies": { "tsup": "^8.0.0", "typescript": "^5.5.0", "vitest": "^2.0.0" } }],
 
     "@esbuild/aix-ppc64": ["@esbuild/aix-ppc64@0.27.7", "", { "os": "aix", "cpu": "ppc64" }, "sha512-EKX3Qwmhz1eMdEJokhALr0YiD0lhQNwDqkPYyPhiSwKrh7/4KRjQc04sZ8db+5DVVnZ1LmbNDI1uAMPEUBnQPg=="],
 

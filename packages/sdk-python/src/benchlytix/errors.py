@@ -1,4 +1,4 @@
-"""Typed exceptions — mirror @benchlytix/sdk TS error classes."""
+"""Typed exceptions — mirror @benchlytixai/sdk TS error classes."""
 
 from __future__ import annotations
 
@@ -77,7 +77,7 @@ def error_from_response(
 ) -> BenchlytixError:
     """Build the right subclass from a parsed response body + HTTP status.
 
-    Mirrors @benchlytix/sdk's `errorFromResponse` so both SDKs raise
+    Mirrors @benchlytixai/sdk's `errorFromResponse` so both SDKs raise
     shape-identical errors. `body` may be `None` when the response has
     no JSON payload (e.g. a 502 gateway).
     """

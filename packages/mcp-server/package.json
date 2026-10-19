@@ -1,7 +1,7 @@
 {
   "name": "benchlytix-mcp-server",
-  "version": "0.1.0",
-  "description": "MCP server for BenchLytix \u2014 expose agent trust scores, leaderboards, and verification as tools in Claude Code, Cursor, VS Code, and any MCP-compatible client.",
+  "version": "0.2.0",
+  "description": "MCP server for BenchLytix — expose agent trust scores, leaderboards, and verification as tools in Claude Code, Cursor, VS Code, and any MCP-compatible client.",
   "keywords": [
     "mcp",
     "model-context-protocol",
@@ -35,7 +35,7 @@
   "scripts": {
     "build": "tsup src/index.ts --format esm --target node18 --clean",
     "test": "vitest run",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "node scripts/publish-manifest.mjs --check && npm run build"
   },
   "engines": {
     "node": ">=18"
@@ -44,8 +44,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "1.0.4",
-    "@benchlytixai/sdk": "0.1.0"
+    "@benchlytixai/sdk": "file:../sdk-ts",
+    "@modelcontextprotocol/sdk": "1.0.4"
   },
   "devDependencies": {
     "tsup": "^8.0.0",
