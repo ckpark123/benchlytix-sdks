@@ -1,6 +1,6 @@
 {
   "name": "@benchlytixai/sdk",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Official TypeScript SDK for the BenchLytix Machine API — agent trust scores, leaderboards, and verification.",
   "keywords": [
     "benchlytix",
@@ -12,7 +12,7 @@
   ],
   "license": "MIT",
   "author": "BenchLytix <support@benchlytix.com>",
-  "homepage": "https://benchlytix.com/for/agents",
+  "homepage": "https://www.benchlytix.com/for/agents",
   "repository": {
     "type": "git",
     "url": "https://github.com/ckpark123/benchlytix-sdks.git",

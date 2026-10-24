@@ -32,7 +32,7 @@ const ENVELOPE: SuccessEnvelope<ScorecardResult> = {
             action_event: 'Send Channel Message',
             outcome: 'pass',
             reps: [{ rep: 1, outcome: 'pass', latency_ms: 1200 }],
-            source_url: 'https://github.com/ckpark123/BenchLytix/blob/main/benchmarks/workflow-automation/v1/n8n/wa-01.json',
+            source_url: 'https://www.benchlytix.com/benchmarks/replace/workflow-automation/n8n/wa-01.json',
           },
         ],
       },
@@ -58,7 +58,7 @@ describe('scorecard()', () => {
     expect(res.data.sides.zapier).toBeNull()
     const [url, init] = f.mock.calls[0] as unknown as [string, RequestInit]
     expect(new URL(url).pathname).toBe('/v1/scorecards/workflow-automation')
-    expect((init.headers as Record<string, string>)['User-Agent']).toBe('@benchlytixai/sdk-ts/0.2.0')
+    expect((init.headers as Record<string, string>)['User-Agent']).toBe('@benchlytixai/sdk-ts/0.2.1')
   })
 
   it('accepts the suite explicitly; API errors surface as BenchlytixError', async () => {

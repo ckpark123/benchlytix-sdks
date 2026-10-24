@@ -59,8 +59,8 @@ def _replacement_params(
         params.append(("must_keep_integrations", app))
     return params
 
-_DEFAULT_BASE_URL = "https://api.benchlytix.com/v1"
-_USER_AGENT = "benchlytix-python/0.2.0"
+_DEFAULT_BASE_URL = "https://www.benchlytix.com/api/v1"
+_USER_AGENT = "benchlytix-python/0.2.1"
 
 
 def _resolve_api_key(explicit: Optional[str]) -> str:

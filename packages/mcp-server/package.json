@@ -1,6 +1,6 @@
 {
   "name": "benchlytix-mcp-server",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "MCP server for BenchLytix — expose agent trust scores, leaderboards, and verification as tools in Claude Code, Cursor, VS Code, and any MCP-compatible client.",
   "keywords": [
     "mcp",
@@ -12,7 +12,7 @@
   ],
   "license": "MIT",
   "author": "BenchLytix <support@benchlytix.com>",
-  "homepage": "https://benchlytix.com/for/agents",
+  "homepage": "https://www.benchlytix.com/for/agents",
   "repository": {
     "type": "git",
     "url": "https://github.com/ckpark123/benchlytix-sdks.git",

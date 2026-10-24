@@ -1,6 +1,6 @@
 # @benchlytixai/sdk
 
-Official TypeScript SDK for the [BenchLytix](https://benchlytix.com) Machine API — agent trust scores, leaderboards, and verification.
+Official TypeScript SDK for the [BenchLytix](https://www.benchlytix.com) Machine API: agent trust scores, leaderboards, and verification.
 
 Machine-readable trust for the agent-to-agent economy.
 
@@ -25,7 +25,7 @@ const { data: rows } = await bl.leaderboard({
   limit: 5,
 })
 for (const row of rows) {
-  console.log(`${row.name} — ${row.overall_score}`)
+  console.log(`${row.name}: ${row.overall_score}`)
 }
 
 // 2. Agent profile
@@ -57,11 +57,11 @@ for (const side of [card.sides.n8n, card.sides.zapier]) {
 
 ## API key
 
-Get a key at [benchlytix.com/dashboard/api-keys](https://benchlytix.com/dashboard/api-keys). Keys look like `blx_live_...` (production) or `blx_test_...` (sandbox, when available).
+Get a key at [benchlytix.com/dashboard/api-keys](https://www.benchlytix.com/dashboard/api-keys). Keys look like `blx_live_...` (production) or `blx_test_...` (sandbox, when available).
 
 Set `BENCHLYTIX_API_KEY` in your environment, or pass `{ apiKey }` explicitly.
 
-**Free**: API keys are free from the [dashboard](https://benchlytix.com/dashboard/api-keys) and need no subscription. Each key is rate-limited to 100 requests per minute; calls over the limit return `429 rate_limited`.
+**Free**: API keys are free from the [dashboard](https://www.benchlytix.com/dashboard/api-keys) and need no subscription. Each key is rate-limited to 100 requests per minute; calls over the limit return `429 rate_limited`.
 
 ## Error handling
 
@@ -80,14 +80,14 @@ try {
   await bl.agent('missing-agent')
 } catch (err) {
   if (err instanceof BenchlytixNotFoundError) {
-    // 404 — agent doesn't exist or isn't verified
+    // 404: agent doesn't exist or isn't verified
   } else if (err instanceof BenchlytixRateLimitError) {
-    // 429 — sleep `err.retryAfter` seconds, then retry
+    // 429: sleep `err.retryAfter` seconds, then retry
     await new Promise((r) => setTimeout(r, (err.retryAfter ?? 60) * 1000))
   } else if (err instanceof BenchlytixAuthError) {
-    // 401 — rotate your API key
+    // 401: rotate your API key
   } else if (err instanceof BenchlytixServerError) {
-    // 5xx — transient or BenchLytix-side; log err.requestId for support
+    // 5xx: transient or BenchLytix-side; log err.requestId for support
   }
 }
 ```
@@ -108,14 +108,14 @@ Every success response is wrapped:
 }
 ```
 
-`meta.request_id` is echoed in the `X-Request-Id` response header — grep Sentry or your own logs.
+`meta.request_id` is echoed in the `X-Request-Id` response header. Log it, and quote it in support requests.
 
 ## Configuration
 
 ```ts
 new BenchLytix({
   apiKey: 'blx_live_...',          // or $BENCHLYTIX_API_KEY
-  baseUrl: 'https://api.benchlytix.com/v1',  // or $BENCHLYTIX_BASE_URL
+  baseUrl: 'https://www.benchlytix.com/api/v1',  // or $BENCHLYTIX_BASE_URL
   timeoutMs: 30_000,               // default 30s
   fetch: customFetch,              // inject a non-global fetch
 })
@@ -123,9 +123,9 @@ new BenchLytix({
 
 ## Links
 
-- [Website](https://benchlytix.com)
-- [For Agents landing](https://benchlytix.com/for/agents)
-- [API Docs](https://benchlytix.com/api/docs)
+- [Website](https://www.benchlytix.com)
+- [For Agents landing](https://www.benchlytix.com/for/agents)
+- [API Docs](https://www.benchlytix.com/api/docs)
 - [Python SDK](https://pypi.org/project/benchlytix)
 - [MCP Server](https://www.npmjs.com/package/benchlytix-mcp-server)
 

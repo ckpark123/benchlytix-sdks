@@ -35,7 +35,7 @@ DATA = {
                     "action_event": "Send Channel Message",
                     "outcome": "pass",
                     "reps": [{"rep": 1, "outcome": "pass", "latency_ms": 1200}, {"rep": 2, "outcome": "not_observed", "latency_ms": None}],
-                    "source_url": "https://github.com/ckpark123/BenchLytix/blob/main/benchmarks/workflow-automation/v1/n8n/wa-01.json",
+                    "source_url": "https://www.benchlytix.com/benchmarks/replace/workflow-automation/n8n/wa-01.json",
                 }
             ],
         },

@@ -20,10 +20,10 @@
  * PR-S2 (0.2.0):
  *   - get_scorecard → bl.scorecard(suite) (GET /v1/scorecards/{suite})
  *
- * S2b route coverage (stubs that return `not_available` until S2b lands):
+ * Stubs that return `not_available` (no v1 route behind them):
  *   - get_categories
- *   - compare_agents
  *   - get_methodology
+ * compare_agents is not a stub: it reads bl.agent(slug) per slug.
  */
 
 import type { BenchLytix } from '@benchlytixai/sdk'
@@ -240,7 +240,7 @@ export async function verifyAgent(
 export const GET_CATEGORIES_SCHEMA = {
   name: 'get_categories',
   description:
-    'List all BenchLytix task categories. (Arrives with Session 2b — /api/v1/categories.)',
+    'List all BenchLytix task categories. Not implemented in 0.2.x: returns not_available.',
   inputSchema: {
     type: 'object' as const,
     properties: {},
@@ -253,19 +253,19 @@ export async function getCategories(
   _args: Record<string, never>
 ): Promise<ToolResult> {
   return fail(
-    'get_categories is coming in Session 2b. Until then, see https://benchlytix.com/methodology for the current category list.',
+    'get_categories is not implemented in this version. The task categories are listed at https://www.benchlytix.com/docs/scoring-methodology.',
     'not_available'
   )
 }
 
 // ---------------------------------------------------------------------------
-// compare_agents — S2b stub
+// compare_agents: stitched client-side from bl.agent(slug) per slug
 // ---------------------------------------------------------------------------
 
 export const COMPARE_AGENTS_SCHEMA = {
   name: 'compare_agents',
   description:
-    'Compare 2–5 agents side by side. (Arrives with Session 2b — /api/v1/compare.)',
+    'Compare 2 to 5 agents side by side, by slug.',
   inputSchema: {
     type: 'object' as const,
     properties: {
@@ -286,7 +286,7 @@ export async function compareAgents(
   args: { slugs: string[] }
 ): Promise<ToolResult> {
   if (!Array.isArray(args.slugs) || args.slugs.length < 2 || args.slugs.length > 5) {
-    return fail('slugs must be an array of 2–5 agent slugs', 'validation_error')
+    return fail('slugs must be an array of 2 to 5 agent slugs', 'validation_error')
   }
   // Until S2b ships /api/v1/compare, we stitch client-side.
   try {
@@ -329,7 +329,7 @@ export async function compareAgents(
 export const GET_METHODOLOGY_SCHEMA = {
   name: 'get_methodology',
   description:
-    'Return the BenchLytix scoring methodology document. (Arrives with Session 2b — /api/v1/methodology.)',
+    'Return the BenchLytix scoring methodology document. Not implemented in 0.2.x: returns not_available.',
   inputSchema: {
     type: 'object' as const,
     properties: {},
@@ -342,7 +342,7 @@ export async function getMethodology(
   _args: Record<string, never>
 ): Promise<ToolResult> {
   return fail(
-    'get_methodology is coming in Session 2b. Read the current methodology at https://benchlytix.com/methodology.',
+    'get_methodology is not implemented in this version. Read the methodology at https://www.benchlytix.com/docs/scoring-methodology.',
     'not_available'
   )
 }
@@ -354,7 +354,7 @@ export async function getMethodology(
 export const FIND_REPLACEMENTS_SCHEMA = {
   name: 'find_replacements',
   description:
-    'Find self-hostable replacements (each with its licence class) for a paid tool or a goal. Every candidate carries evidence_label: "tested" (a published BenchLytix test with a verdict and scorecard_url), "coverage_checked" (connector coverage computed from a crawled directory, nothing run) or "listed_untested" (public facts only). Show the label with each candidate; there is no score on untested rows. licence_class is derived from SPDX and reviewed LICENSE files (open_core, fair_code and source_available tools are not fully open source). Each candidate has description (whose words), maintenance (inactive = no push in 12 months), and where known a footprint (a rough hosting reference, not a measurement); paid_tool_pricing gives the paid tool\'s vendor list price with its source and date; hidden lists what was left out and why. Call this before recommending or adopting a self-hosted tool.',
+    'Find self-hostable replacements (each with its licence class) for a paid tool or a goal. Every candidate carries evidence_label: "tested" (a published BenchLytix test with a verdict and scorecard_url), "coverage_checked" (connector coverage computed from a crawled directory, nothing run) or "listed_untested" (public facts only). Show the label with each candidate; there is no score on untested rows. licence_class is derived from SPDX and reviewed LICENSE files (open_core, fair_code and source_available tools are not fully open source). Each candidate has description (whose words), maintenance (inactive = no push in 12 months), and where known a footprint (a rough hosting reference, not a measurement); paid_tool_pricing gives the paid tool\'s vendor list price with its source and date (from_usd_monthly is null when there is no usable amount, and amount_reason says why: tiered, reduction_terms_not_stated, withheld or no_price); hidden lists what was left out and why. Call this before recommending or adopting a self-hosted tool.',
   inputSchema: {
     type: 'object' as const,
     properties: {

@@ -37,7 +37,7 @@ def _handler(seen: list[httpx.Request]):
 
 
 def test_version_is_0_2_0() -> None:
-    assert __version__ == "0.2.0"
+    assert __version__ == "0.2.1"
 
 
 def test_replacements_maps_params_and_parses() -> None:
@@ -50,7 +50,7 @@ def test_replacements_maps_params_and_parses() -> None:
     assert req.url.path.endswith("/replacements")
     assert req.url.params.get_list("must_keep_integrations") == ["Slack", "A, B"]
     assert req.url.params["paid_tool"] == "Zapier"
-    assert req.headers["user-agent"] == "benchlytix-python/0.2.0"
+    assert req.headers["user-agent"] == "benchlytix-python/0.2.1"
 
 
 def test_replacements_requires_goal_or_paid_tool() -> None:

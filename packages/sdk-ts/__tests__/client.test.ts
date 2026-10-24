@@ -61,6 +61,19 @@ describe('BenchLytix constructor', () => {
     expect(client).toBeInstanceOf(BenchLytix)
   })
 
+  it('defaults to the www API host (api.benchlytix.com has no DNS record)', async () => {
+    const prev = process.env.BENCHLYTIX_BASE_URL
+    delete process.env.BENCHLYTIX_BASE_URL
+    try {
+      const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(makeResponse({ data: [], meta: META }))
+      const client = new BenchLytix({ apiKey: 'blx_live_abc', fetch: fetchMock })
+      await client.leaderboard()
+      expect(fetchMock.mock.calls[0]![0]).toBe('https://www.benchlytix.com/api/v1/agents')
+    } finally {
+      if (prev !== undefined) process.env.BENCHLYTIX_BASE_URL = prev
+    }
+  })
+
   it('strips trailing slash from baseUrl', async () => {
     const fetchMock = vi
       .fn<typeof fetch>()

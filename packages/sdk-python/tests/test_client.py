@@ -68,6 +68,20 @@ def test_constructor_requires_api_key(monkeypatch):
         BenchLytix()
 
 
+def test_constructor_defaults_to_www_api_host(monkeypatch):
+    # api.benchlytix.com has no DNS record; the API lives on www (2026-10-24).
+    monkeypatch.delenv("BENCHLYTIX_BASE_URL", raising=False)
+    captured: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured.append(str(request.url))
+        return _response({"data": [], "meta": META})
+
+    client = BenchLytix(api_key="blx_live_test", transport=_transport(handler))
+    client.leaderboard()
+    assert captured[0] == "https://www.benchlytix.com/api/v1/agents"
+
+
 def test_constructor_strips_trailing_slash():
     captured: list[str] = []
 

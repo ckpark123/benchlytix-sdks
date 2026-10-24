@@ -231,7 +231,10 @@ export interface ReplacementsResult {
     paid_tool: string
     name: string
     plan: string
+    /** Usable list price a month in USD; null when there is none to use (see amount_reason). */
     from_usd_monthly: number | null
+    /** Why from_usd_monthly is null; null when it is usable. Additive (2026-10-20). */
+    amount_reason?: 'tiered' | 'reduction_terms_not_stated' | 'withheld' | 'no_price' | null
     unit: 'per seat' | 'per plan' | 'per host' | 'usage-based'
     billing: string | null
     note: string | null

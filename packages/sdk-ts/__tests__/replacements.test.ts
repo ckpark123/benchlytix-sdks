@@ -58,7 +58,7 @@ describe('replacements()', () => {
     expect(u.searchParams.get('osi_only')).toBe('false')
     // one parameter per app, so an app name may contain a comma
     expect(u.searchParams.getAll('must_keep_integrations')).toEqual(['Slack', 'Google Sheets'])
-    expect((init.headers as Record<string, string>)['User-Agent']).toBe('@benchlytixai/sdk-ts/0.2.0')
+    expect((init.headers as Record<string, string>)['User-Agent']).toBe('@benchlytixai/sdk-ts/0.2.1')
   })
 
   it('requires goal or paidTool before any request', async () => {

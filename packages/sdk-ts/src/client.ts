@@ -38,7 +38,7 @@ export interface BenchLytixOptions {
    */
   apiKey?: string
   /**
-   * Override base URL. Default `https://api.benchlytix.com/v1`.
+   * Override base URL. Default `https://www.benchlytix.com/api/v1`.
    * Useful for staging / self-hosted proxies. Set via `BENCHLYTIX_BASE_URL` env.
    */
   baseUrl?: string
@@ -51,7 +51,7 @@ export interface BenchLytixOptions {
   fetch?: typeof fetch
 }
 
-const DEFAULT_BASE_URL = 'https://api.benchlytix.com/v1'
+const DEFAULT_BASE_URL = 'https://www.benchlytix.com/api/v1'
 
 export class BenchLytix {
   private readonly apiKey: string
@@ -164,7 +164,7 @@ export class BenchLytix {
         headers: {
           Authorization: `Bearer ${this.apiKey}`,
           Accept: 'application/json',
-          'User-Agent': '@benchlytixai/sdk-ts/0.2.0',
+          'User-Agent': '@benchlytixai/sdk-ts/0.2.1',
         },
         signal: controller.signal,
       })

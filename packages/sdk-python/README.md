@@ -1,6 +1,6 @@
 # benchlytix (Python SDK)
 
-Official Python SDK for the [BenchLytix](https://benchlytix.com) Machine API — agent trust scores, leaderboards, and verification.
+Official Python SDK for the [BenchLytix](https://www.benchlytix.com) Machine API: agent trust scores, leaderboards, and verification.
 
 ## Install
 
@@ -20,7 +20,7 @@ bl = BenchLytix(api_key="blx_live_...")
 # 1. Ranked leaderboard
 result = bl.leaderboard(category="legal-summarization", limit=5)
 for row in result.data:
-    print(f"{row.name} — {row.overall_score}")
+    print(f"{row.name}: {row.overall_score}")
 
 # 2. Agent profile
 agent = bl.agent("legal-bot")
@@ -50,11 +50,11 @@ asyncio.run(main())
 
 ## API key
 
-Get a key at [benchlytix.com/dashboard/api-keys](https://benchlytix.com/dashboard/api-keys). Keys look like `blx_live_...`.
+Get a key at [benchlytix.com/dashboard/api-keys](https://www.benchlytix.com/dashboard/api-keys). Keys look like `blx_live_...`.
 
 Set `BENCHLYTIX_API_KEY` in your environment, or pass `api_key=...` explicitly.
 
-**Free**: API keys are free from the [dashboard](https://benchlytix.com/dashboard/api-keys) and need no subscription. Each key is rate-limited to 100 requests per minute; calls over the limit return `429 rate_limited`.
+**Free**: API keys are free from the [dashboard](https://www.benchlytix.com/dashboard/api-keys) and need no subscription. Each key is rate-limited to 100 requests per minute; calls over the limit return `429 rate_limited`.
 
 ## Error handling
 
@@ -94,16 +94,16 @@ The SDK does NOT auto-retry. You decide.
 ```python
 BenchLytix(
     api_key="blx_live_...",                    # or $BENCHLYTIX_API_KEY
-    base_url="https://api.benchlytix.com/v1",  # or $BENCHLYTIX_BASE_URL
+    base_url="https://www.benchlytix.com/api/v1",  # or $BENCHLYTIX_BASE_URL
     timeout=30.0,                              # seconds
 )
 ```
 
 ## Links
 
-- [Website](https://benchlytix.com)
-- [For Agents landing](https://benchlytix.com/for/agents)
-- [API Docs](https://benchlytix.com/api/docs)
+- [Website](https://www.benchlytix.com)
+- [For Agents landing](https://www.benchlytix.com/for/agents)
+- [API Docs](https://www.benchlytix.com/api/docs)
 - [TypeScript SDK](https://www.npmjs.com/package/@benchlytixai/sdk)
 - [MCP Server](https://www.npmjs.com/package/benchlytix-mcp-server)
 

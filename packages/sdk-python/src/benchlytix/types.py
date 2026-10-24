@@ -207,6 +207,10 @@ class ReplacementsResult(BaseModel):
     query_echo: dict
     candidates: List[ReplacementCandidate]
     hidden: List[dict] = []
+    # paid_tool_pricing keys: paid_tool, name, plan, from_usd_monthly (None when
+    # there is no usable amount), amount_reason ('tiered' |
+    # 'reduction_terms_not_stated' | 'withheld' | 'no_price' | None; additive
+    # 2026-10-20), unit, billing, note, sentence, source_url, checked_at.
     paid_tool_pricing: Optional[dict] = None
     paid_tool_coverage: Optional[dict] = None
     disclosure: ReplacementDisclosure

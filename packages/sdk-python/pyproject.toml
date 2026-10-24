@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "benchlytix"
-version = "0.2.0"
+version = "0.2.1"
 description = "Official Python SDK for the BenchLytix Machine API — agent trust scores, leaderboards, and verification."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -36,8 +36,8 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://benchlytix.com/for/agents"
-Documentation = "https://benchlytix.com/api/docs"
+Homepage = "https://www.benchlytix.com/for/agents"
+Documentation = "https://www.benchlytix.com/api/docs"
 Repository = "https://github.com/ckpark123/benchlytix-sdks"
 Issues = "https://github.com/ckpark123/benchlytix-sdks/issues"
 
